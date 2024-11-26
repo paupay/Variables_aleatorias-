@@ -1,0 +1,388 @@
+---
+title: "Distribuciones de Variables Aleatorias"
+output: 
+  html_document:
+    theme: cerulean
+---
+
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(plotly)
+```
+
+
+
+
+
+## Distribución uniforme
+
+Gráfica de la función de probabilidad.
+
+
+```{r}
+n <- 10
+
+x_values <- 1:n # Genero una lista de números de 1 a n
+f_prob <- rep(1/n, n)
+
+
+ggplot()+
+   geom_point(aes(x_values, f_prob), size=3, color="firebrick")+
+   labs(title="Función de probabilidad. Uniforme discreta",
+        x="X", y="Probabilidad")+
+   scale_x_continuous(breaks = 1:n)+
+   theme_minimal()
+```
+
+Generar una muestra.
+
+```{r}
+N <- 10000
+muestra <- sample(1:n, N, replace = TRUE)
+table(muestra)
+```
+
+Gráfica de frecuencias.
+
+```{r}
+ggplot()+
+  geom_bar(aes(factor(muestra), fill=factor(muestra)), color="black", alpha=1, show.legend = FALSE)+
+  labs(x="Valores", y="Frecuencias")+
+  theme_bw()
+```
+
+Media muestral, compararla con la esperanza de la VA $E(X)=(n+1)/2$.
+
+```{r}
+Media <- mean(muestra)
+Media
+E_X <- (n+1)/2
+E_X
+```
+
+Varianza muestral, compararla con la varianza de la VA, $Var(X)=(n^2-1)/12$.
+
+```{r}
+Varianza <- var(muestra)
+Varianza
+Var_X <- (n^2-1)/12
+Var_X
+
+```
+
+
+
+## Distribución Bernoulli
+
+
+Generamos una muestra $X\sim Ber(p)$
+
+
+```{r}
+N <- 100
+muestra <- rbinom(N, 1, 0.8)
+table(muestra)
+```
+
+Gráfica de barras
+
+```{r}
+ggplot()+
+  geom_bar(aes(factor(muestra), fill=factor(muestra)), show.legend = FALSE, color="black")+
+  labs(x="Valores", y="Frecuencias")+
+  theme_bw()
+```
+
+
+Comparar la media muestral con la esperanza $E(X)=p=0.8$
+
+
+```{r}
+mean(muestra)
+```
+
+Comparamos la varianza muestral con $Var(X)=p(1-p)=0.16$
+
+
+```{r}
+var(muestra)
+```
+
+## Distribución binomial
+
+Gráfica de probabilidad $X\sim bin(n,p)$
+
+```{r}
+n <- 50
+p <- 0.75
+
+
+
+
+tabla_bin <- tibble(x=0:n, f_x=choose(n,x)*p^x*(1-p)^(n-x), otra_f_x= dbinom(x, n, p))
+
+
+graf_bin <- ggplot(tabla_bin)+
+  geom_segment(aes(x=x, xend=x, y=0, yend=f_x), color="yellow3")+
+  geom_point(aes(x, f_x), color="goldenrod3", size=2)+
+  theme_bw()
+
+
+ggplotly(graf_bin)
+
+```
+
+
+Generamos una muestra
+
+
+```{r}
+N <- 1000
+
+muestra_bin <- tibble(ID_muestra= paste("Muestra", 1:N, sep="_"), x=rbinom(N, n, p), categoria=sample(c("A", "B", "C"), N, replace = TRUE))
+
+table(muestra_bin$x)
+
+ggplot(muestra_bin)+
+  geom_bar(aes(x, fill= categoria), color="black")+
+  theme_bw()
+
+
+
+```
+
+Comparamos la media muestral con la esperanza $E(X)=np$
+
+
+```{r}
+mean(muestra_bin$x)
+```
+
+Comparamos la varianza muestral con $Var(X)=np(1-p)$
+
+```{r}
+var(muestra_bin$x)
+```
+
+
+
+### Ejemplo 10.5 
+
+
+$X\sim bin(10, 1/3)$
+
+
+```{r}
+tabla_ejem <- tibble(x= 0:10, f_prob= dbinom(x, 10, 1/3))
+
+graf_ejemplo <- ggplot(tabla_ejem)+
+  geom_segment(aes(x=x, xend=x, y=0, yend=f_prob), color="yellow3")+
+  geom_point(aes(x, f_prob), color="firebrick", size=1.5)+
+  theme_bw()
+
+ggplotly(graf_ejemplo)
+
+```
+
+
+```{r}
+aprob_prob <- tabla_ejem |> filter(x>=6)
+aprob_prob_valor <- sum(aprob_prob$f_prob)
+aprob_prob_valor
+```
+
+
+## Distribución Geométrica
+
+$X\sim geom(p)$
+
+```{r}
+n <- 10
+p <- 0.2
+
+
+tabla_geom <- tibble(x=0:n, f_prob= dgeom(x,p))
+
+graf_geom <- ggplot(tabla_geom)+
+  geom_segment(aes(x=x, xend=x, y=0, yend=f_prob), color="yellow3")+
+  geom_point(aes(x, f_prob), color="firebrick", size=1.5)+
+  theme_bw()
+
+ggplotly(graf_geom)
+
+```
+
+
+
+Generamos una muestra
+
+
+```{r}
+N <- 1000
+
+muestra_geom <- tibble(ID_muestra= paste("Muestra", 1:N, sep="_"), x=rgeom(N, p), categoria=sample(c("A", "B", "C"), N, replace = TRUE))
+
+table(muestra_geom$x)
+
+ggplot(muestra_geom)+
+  geom_bar(aes(x, fill= categoria), color="black")+
+  theme_bw()
+
+
+
+```
+
+
+Comparar promedio con la esperanza: `r (1-p)/p`
+
+
+```{r}
+mean(muestra_geom$x)
+
+
+```
+
+Comparar la varianza muestral con la $Var(X)=$ `r (1-p)/p^2`
+
+
+```{r}
+var(muestra_geom$x)
+```
+
+
+
+## Distribución Binomial negativa
+
+$X\sim bin neg(p)$
+
+```{r}
+n <- 20
+r <- 3
+p <- 0.5
+
+
+tabla_binneg <- tibble(x=0:n, f_prob=  dnbinom(x, r, p))
+
+graf_binneg <- ggplot(tabla_binneg)+
+  geom_segment(aes(x=x, xend=x, y=0, yend=f_prob), color="yellow3")+
+  geom_point(aes(x, f_prob), color="firebrick", size=1.5)+
+  theme_bw()
+
+plot(graf_binneg)
+
+```
+
+
+
+Generamos una muestra
+
+
+```{r}
+N <- 1000
+
+muestra_binneg <- tibble(ID_muestra= paste("Muestra", 1:N, sep="_"), x=rnbinom(N, r, p), categoria=sample(c("A", "B", "C"), N, replace = TRUE))
+
+table(muestra_binneg$x)
+
+ggplot(muestra_binneg)+
+  geom_bar(aes(x, fill= categoria), color="black")+
+  theme_bw()
+
+
+
+```
+
+
+Comparar promedio con la esperanza: `r r*(1-p)/p`
+
+
+```{r}
+mean(muestra_binneg$x)
+
+
+```
+
+Comparar la varianza muestral con la $Var(X)=$ `r r*(1-p)/p^2`
+
+
+```{r}
+var(muestra_binneg$x)
+```
+
+
+
+
+## Distribución Hipergeométrica
+
+$X\sim hipergeom(p)$
+
+```{r}
+K <- 10
+N <- 40
+n <- N-K
+k <- 8
+
+tabla_hiper <- tibble(x=0:k, f_prob= dhyper(x, K, n, 8))
+
+graf_hiper <- ggplot(tabla_hiper)+
+  geom_segment(aes(x=x, xend=x, y=0, yend=f_prob), color="yellow3")+
+  geom_point(aes(x, f_prob), color="firebrick", size=1.5)+
+  theme_bw()
+
+plot(graf_hiper)
+
+```
+
+
+
+Generamos una muestra
+
+
+```{r}
+N_muestra <- 1000
+
+muestra_hiper <- tibble(ID_muestra= paste("Muestra", 1:N_muestra, sep="_"), x=rhyper(N_muestra, K, n, k), categoria=sample(c("A", "B", "C"), N_muestra, replace = TRUE))
+
+table(muestra_hiper$x)
+
+ggplot(muestra_hiper)+
+  geom_bar(aes(x, fill= categoria), color="black")+
+  theme_bw()
+
+
+
+```
+
+
+Comparar promedio con la esperanza: 
+
+
+```{r}
+mean(muestra_hiper$x)
+
+
+```
+
+Comparar la varianza muestral 
+
+
+```{r}
+var(muestra_hiper$x)
+```
+
+
+
+
+
+
+
+
+## Distribución de Poisson
+
+
+
+
+
+
